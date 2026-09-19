@@ -61,6 +61,52 @@ pub fn raw_detect(text: &str) -> RawInfo {
     }
 }
 
+/// Computes the full trigram candidate scores for a text with the given filter
+/// list, exactly as the trigram detection method produces them.
+/// Returns `None` when the text's script does not need trigram-based detection.
+/// It exists to support regression snapshots and profiling tools.
+pub fn raw_trigram_scores(text: &str, filter_list: &FilterList) -> Option<Vec<(Lang, f64)>> {
+    let raw_script_info = raw_detect_script(text);
+    let script = raw_script_info.main_script()?;
+    match script.to_lang_group() {
+        ScriptLangGroup::Multi(multi_lang_script) => {
+            let query = Query {
+                text,
+                filter_list,
+                method: Method::Trigram,
+            };
+            let iquery = query.to_internal(multi_lang_script);
+            Some(crate::trigrams::raw_detect(&iquery).scores)
+        }
+        _ => None,
+    }
+}
+
+/// Number of bytes the embedded trigram profiles occupy in the binary.
+pub fn profile_storage_bytes() -> usize {
+    use crate::trigrams::{ARABIC_LANGS, CYRILLIC_LANGS, DEVANAGARI_LANGS, HEBREW_LANGS, LATIN_LANGS};
+    let mut total = 0;
+    for list in [
+        LATIN_LANGS,
+        CYRILLIC_LANGS,
+        ARABIC_LANGS,
+        DEVANAGARI_LANGS,
+        HEBREW_LANGS,
+    ] {
+        total += std::mem::size_of_val(list);
+        for &(_, profile) in list {
+            total += std::mem::size_of_val(profile);
+        }
+    }
+    total
+}
+
+/// Number of heap bytes currently used by lazily decoded trigram profiles.
+/// The eager profile layout keeps everything in static memory, so this is 0.
+pub fn decoded_profile_bytes() -> usize {
+    0
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
