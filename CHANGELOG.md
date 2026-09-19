@@ -1,3 +1,9 @@
+### Unreleased
+* Store trigram profiles as packed `u16` blobs and decode them lazily per language (see PROFILE_FORMAT.md):
+  * ~50% smaller profile data in release binaries
+  * whitelists (`Detector::with_allowlist`) no longer decode unrelated languages
+  * detection results are unchanged (guarded by a golden-master test over the corpus and boundary samples)
+
 ### v0.18.0 - 2025-10-16
 * [BREAKING] Update to Rust edition 2024
 

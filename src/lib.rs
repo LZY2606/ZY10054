@@ -45,6 +45,8 @@ mod alphabets;
 mod combined;
 mod core;
 mod error;
+#[cfg(test)]
+mod golden;
 mod lang;
 mod scripts;
 mod trigrams;

@@ -48,22 +48,22 @@ pub fn raw_detect(iquery: &InternalQuery) -> RawOutcome {
     calculate_scores_in_profiles(&iquery.text, iquery.filter_list, lang_profile_list)
 }
 
-fn script_to_lang_profile_list(script: MultiLangScript) -> LangProfileList {
+fn script_to_lang_profile_list(script: MultiLangScript) -> &'static LangProfileList {
     use MultiLangScript as MLS;
     match script {
-        MLS::Latin => LATIN_LANGS,
-        MLS::Cyrillic => CYRILLIC_LANGS,
-        MLS::Arabic => ARABIC_LANGS,
-        MLS::Devanagari => DEVANAGARI_LANGS,
-        MLS::Hebrew => HEBREW_LANGS,
+        MLS::Latin => &LATIN_LANGS,
+        MLS::Cyrillic => &CYRILLIC_LANGS,
+        MLS::Arabic => &ARABIC_LANGS,
+        MLS::Devanagari => &DEVANAGARI_LANGS,
+        MLS::Hebrew => &HEBREW_LANGS,
     }
 }
 
 #[inline]
-fn calculate_scores_in_profiles(
+pub(crate) fn calculate_scores_in_profiles(
     text: &Text,
     filter_list: &FilterList,
-    lang_profile_list: LangProfileList,
+    lang_profile_list: &LangProfileList,
 ) -> RawOutcome {
     let mut lang_distances: Vec<(Lang, u32)> = vec![];
 
@@ -72,11 +72,12 @@ fn calculate_scores_in_profiles(
     } = get_trigrams_with_positions(&text.lowercase());
     let unique_trigrams_count = trigram_positions.len();
 
-    for &(lang, lang_trigrams) in lang_profile_list {
+    for index in 0..lang_profile_list.len() {
+        let lang = lang_profile_list.lang(index);
         if !filter_list.is_allowed(lang) {
             continue;
         }
-        let dist = calculate_distance(lang_trigrams, &trigram_positions);
+        let dist = calculate_distance(lang_profile_list.profile(index), &trigram_positions);
         lang_distances.push(((lang), dist));
     }
 

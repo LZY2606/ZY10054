@@ -25,7 +25,7 @@ serde = { version = "1", optional = true, features = ["derive"] }
 arbitrary = { version = "1", optional = true, features = ["derive"] }
 
 [dev-dependencies]
-serde_json = "1.0.39"
+serde_json = { version = "1.0.39", features = ["preserve_order"] }
 bencher = "0.1.5"
 arbtest = "0.2"
 
@@ -36,3 +36,9 @@ dev = []
 name = "example"
 harness = false
 path = "benches/example.rs"
+required-features = ["dev"]
+
+[[bench]]
+name = "detect"
+harness = false
+path = "benches/detect.rs"
